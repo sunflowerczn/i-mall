@@ -1,0 +1,14 @@
+<component name="ArtifactManager">
+  <artifact type="war" name="imall:war">
+    <output-path>$PROJECT_DIR$/target</output-path>
+    <properties id="maven-jee-properties">
+      <options>
+        <module>imall</module>
+        <packaging>war</packaging>
+      </options>
+    </properties>
+    <root id="archive" name="imall-1.0-SNAPSHOT.war">
+      <element id="artifact" artifact-name="imall:war exploded" />
+    </root>
+  </artifact>
+</component>

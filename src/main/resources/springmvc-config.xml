@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/mvc
+       http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+    <!--注解扫描-->
+    <context:component-scan base-package="com.imcode.common.controller,com.imcode.mall.controller"/>
+
+    <!-- 加载配置文件 -->
+    <context:property-placeholder location="classpath:app.properties"/>
+
+    <!-- 注解驱动-->
+    <mvc:annotation-driven/>
+
+    <!--映射静态资源-->
+    <mvc:default-servlet-handler/>
+
+    <!--视图解析-->
+    <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="prefix" value="/WEB-INF/jsp/"/>
+        <property name="suffix" value=".jsp"/>
+    </bean>
+
+
+    <!--配置拦截器-->
+    <mvc:interceptors>
+        <mvc:interceptor>
+
+            <!--拦截-->
+            <mvc:mapping path="/cart/**"/>
+            <mvc:mapping path="/member/**"/>
+            <mvc:mapping path="/order/**"/>
+            <mvc:mapping path="/pay/**"/>
+
+            <mvc:exclude-mapping path="/member/register"/>
+            <mvc:exclude-mapping path="/member/activate"/>
+
+            <!--不拦截静态资源-->
+            <mvc:exclude-mapping path="/css/**"/>
+            <mvc:exclude-mapping path="/images/**"/>
+            <mvc:exclude-mapping path="/js/**"/>
+
+            <bean class="com.imcode.common.interceptor.AuthInterceptor"/>
+        </mvc:interceptor>
+    </mvc:interceptors>
+
+</beans>

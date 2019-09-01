@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/aop
+       http://www.springframework.org/schema/aop/spring-aop.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/tx
+       http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+    <!-- 注解扫描 -->
+    <context:component-scan base-package="com.imcode.mall,com.imcode.common"/>
+    <!--aop注解生效-->
+    <aop:aspectj-autoproxy/>
+
+    <!-- 加载配置文件 -->
+    <context:property-placeholder location="classpath:app.properties"/>
+
+    <!-- 数据源配置 -->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+
+    <!--sqlSessionFactory 由spring来管理 -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!--  将数据源注入sqlSessionFactory-->
+        <property name="dataSource" ref="dataSource"/>
+        <!-- 引入映射文件的位置-->
+        <property name="mapperLocations" value="classpath:mapper/*/*Mapper.xml"/>
+
+        <!-- 分页插件配置 -->
+        <property name="plugins">
+            <array>
+                <!--PageInterceptor 拦截器-->
+                <bean class="com.github.pagehelper.PageInterceptor">
+                    <property name="properties">
+                        <value>
+                            <!--分页合理化参数，默认值为false。
+                                当该参数设置为 true 时，
+                                pageNum<=0 时会查询第一页，
+                                pageNum>pages（超过总数时），会查询最后一页-->
+                            reasonable=true
+
+                            <!--默认值为 false，该参数对使用 RowBounds 作为分页参数时有效。-->
+                            <!--当该参数设置为 true 时，会将 RowBounds 中的 offset 参数当成 pageNum 使用，
+                                可以用页码和页面大小两个参数进行分页-->
+                            offsetAsPageNum=true
+                        </value>
+                    </property>
+                </bean>
+            </array>
+        </property>
+    </bean>
+
+    <!--让spring生成mapper接口的代理实现类-->
+    <bean class="tk.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+        <!--对哪些包下的类生成mapper代理类-->
+        <property name="basePackage" value="com.imcode.mall.mapper"/>
+    </bean>
+
+    <!--配置事务管理器-->
+    <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <!-- 事务增强/通知 -->
+    <tx:advice id="txAdvice" transaction-manager="txManager">
+        <tx:attributes>
+            <tx:method name="*"/>
+            <tx:method name="get*" read-only="true"/>
+            <tx:method name="find*" read-only="true"/>
+        </tx:attributes>
+    </tx:advice>
+
+    <!-- 切面配置 -->
+    <aop:config>
+
+        <aop:advisor advice-ref="txAdvice" pointcut="execution(* com.imcode.mall.service.*Service.*(..))"/>
+    </aop:config>
+
+
+    <!--邮件服务器配置-->
+    <bean name="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+        <property name="host" value="${mail.host}"/>
+        <property name="port" value="${mail.port}"/>
+        <property name="username" value="${mail.username}"/>
+        <property name="password" value="${mail.password}"/>
+    </bean>
+
+
+    <!-- Redis 配置 -->
+    <!-- 单机版配置-->
+    <bean name="standaloneConfig" class="org.springframework.data.redis.connection.RedisStandaloneConfiguration">
+        <property name="hostName" value="${redis.host}"/>
+        <property name="port" value="${redis.port}"/>
+    </bean>
+
+    <!-- redis数据库连接工厂-->
+    <bean name="jedisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+        <constructor-arg name="standaloneConfig" ref="standaloneConfig"/>
+    </bean>
+
+
+    <bean name="stringRedisTemplate" class="org.springframework.data.redis.core.StringRedisTemplate">
+        <property name="connectionFactory" ref="jedisConnectionFactory"/>
+    </bean>
+
+    <bean name="stringRedisSerializer" class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
+
+    <bean name="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
+        <property name="connectionFactory" ref="jedisConnectionFactory"/>
+
+        <property name="keySerializer" ref="stringRedisSerializer"/>
+        <property name="hashKeySerializer" ref="stringRedisSerializer"/>
+        <!--<property name="hashValueSerializer" ref="stringRedisSerializer"/>-->
+    </bean>
+</beans>

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.imcode.mall.mapper.OrderMapper">
+    <resultMap id="BaseResultMap" type="com.imcode.mall.model.Order">
+        <!--
+          WARNING - @mbg.generated
+        -->
+        <id column="order_number" jdbcType="VARCHAR" property="orderNumber"/>
+        <result column="member_id" jdbcType="INTEGER" property="memberId"/>
+        <result column="address_id" jdbcType="INTEGER" property="addressId"/>
+        <result column="payment_amount" jdbcType="DECIMAL" property="paymentAmount"/>
+        <result column="payment_time" jdbcType="TIMESTAMP" property="paymentTime"/>
+        <result column="freight" jdbcType="DECIMAL" property="freight"/>
+        <result column="send_time" jdbcType="TIMESTAMP" property="sendTime"/>
+        <result column="finish_time" jdbcType="TIMESTAMP" property="finishTime"/>
+        <result column="cancel_time" jdbcType="TIMESTAMP" property="cancelTime"/>
+        <result column="order_status" jdbcType="INTEGER" property="orderStatus"/>
+        <result column="is_delete" jdbcType="INTEGER" property="isDelete"/>
+        <result column="create_time" jdbcType="TIMESTAMP" property="createTime"/>
+        <result column="update_time" jdbcType="TIMESTAMP" property="updateTime"/>
+
+
+        <collection property="itemList" ofType="com.imcode.mall.model.OrderItem">
+            <result column="order_number" jdbcType="VARCHAR" property="orderNumber"/>
+            <result column="goods_id" jdbcType="INTEGER" property="goodsId"/>
+            <result column="goods_name" jdbcType="VARCHAR" property="goodsName"/>
+            <result column="goods_img" jdbcType="VARCHAR" property="goodsImg"/>
+            <result column="goods_unit" jdbcType="VARCHAR" property="goodsUnit"/>
+            <result column="goods_price" jdbcType="DECIMAL" property="goodsPrice"/>
+            <result column="quantity" jdbcType="INTEGER" property="quantity"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectOrder" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        SELECT
+          t1.*,
+          t2.goods_id,
+          t2.goods_name,
+          t2.goods_price,
+          t2.goods_unit,
+          t2.goods_img,
+          t2.quantity
+        FROM
+            mall_order t1,
+            mall_order_item t2
+        WHERE
+            t1.order_number = t2.order_number
+        AND t1.member_id = #{memberId}
+    </select>
+</mapper>
